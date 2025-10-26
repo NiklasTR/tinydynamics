@@ -1,5 +1,6 @@
 from tinydynamics.core.state import State
 from tinydynamics.core.potentials import general_well_potential
+from tinydynamics.core.state import simple_lambda
 
 import jax
 import jax.numpy as jnp
@@ -21,7 +22,8 @@ def newtonian_dynamics(
     def step(state: State, _: None) -> State:
         v = state.v + dt * -grad_potential(state.x) / mass
         x = state.x + dt * v
-        carry = State(t=state.t + dt, x=x, v=v, key=state.key) # key pass through
+        l = simple_lambda(x)
+        carry = State(t=state.t + dt, x=x, v=v, l=l, key=state.key) # key pass through
         record = carry # carry is the markovian state, record is what is returned
         return carry, record
     
@@ -37,13 +39,13 @@ def langevin_dynamics(
     mass: float,
     gamma: float,
     temperature: float,
+    kB: float = 1.0,
     a: float = 1.0,
     b: float = 3.0,
     c: float = 10.0,
 ):
-    # lambda to skip the passing of a, b, c to the gradient function
     grad_potential = jax.grad(lambda x: general_well_potential(x, a, b, c))
-    sigma = jnp.sqrt(2.0 * jnp.maximum(gamma, 0.0) * jnp.maximum(temperature, 0.0)) / mass
+    sigma = jnp.sqrt(2.0 * gamma * kB * temperature) / mass
 
     # one step of the dynamics
     def step(state: State, _: None) -> State:
@@ -55,7 +57,8 @@ def langevin_dynamics(
         v += sigma * xi * jnp.sqrt(dt) # termal term
 
         x = state.x + dt * v # euler-maruyama step
-        carry = State(t=state.t + dt, x=x, v=v, key=key)
+        l = simple_lambda(x)
+        carry = State(t=state.t + dt, x=x, v=v, l=l, key=key)
         record = carry # carry is the markovian state, record is what is returned
         return carry, record
     
