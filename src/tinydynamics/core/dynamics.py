@@ -1,6 +1,7 @@
 from tinydynamics.core.state import State
 from tinydynamics.core.potentials import general_well_potential
 from tinydynamics.core.state import simple_lambda
+from tinydynamics.core.policy import policy_forward, Policy
 
 import jax
 import jax.numpy as jnp
@@ -11,12 +12,15 @@ def newtonian_dynamics(
     dt: float,
     n_steps: int,
     mass: float,
+    policy: Policy,
     a: float = 1.0,
     b: float = 3.0,
     c: float = 10.0,
 ):
     # lambda to skip the passing of a, b, c to the gradient function
-    grad_potential = jax.grad(lambda x: general_well_potential(x, a, b, c))
+    def system_potential(x: jnp.ndarray) -> jnp.ndarray:
+        general_well_potential(x, a, b, c) + policy_forward(x, policy)
+    grad_potential = jax.grad(system_potential)
 
     # one step of the dynamics
     def step(state: State, _: None) -> State:
@@ -39,12 +43,15 @@ def langevin_dynamics(
     mass: float,
     gamma: float,
     temperature: float,
+    policy: Policy,
     kB: float = 1.0,
     a: float = 1.0,
     b: float = 3.0,
     c: float = 10.0,
 ):
-    grad_potential = jax.grad(lambda x: general_well_potential(x, a, b, c))
+    def system_potential(x: jnp.ndarray) -> jnp.ndarray:
+        general_well_potential(x, a, b, c) + policy_forward(x, policy)
+    grad_potential = jax.grad(system_potential)
     sigma = jnp.sqrt(2.0 * gamma * kB * temperature) / mass
 
     # one step of the dynamics

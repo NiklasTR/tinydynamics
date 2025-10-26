@@ -17,7 +17,7 @@ def simple_lambda(x: jnp.ndarray, threshold: float = 2.0) -> bool: # we define l
 def initialize_state(D: int, key: jax.Array) -> State:
     key, kx, kv = jax.random.split(key, 3)
 
-    x = jax.random.uniform(kx, shape=(D), minval=-3.0, maxval=3.0)
+    x = jax.random.uniform(kx, shape=(D), minval=-4.0, maxval=1.0) # lambda = False
     v = jax.random.uniform(kv, shape=(D), minval=-0.1, maxval=0.1)
     l = simple_lambda(x) # starting state
     
