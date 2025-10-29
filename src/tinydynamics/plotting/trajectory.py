@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 
 def plot_trajectory(trajectories: State | list[State], filename: str = "trajectory.png") -> None:
-    """Plot 2D trajectory in phase space with lambda state over time.
+    """Plot 2D trajectory in phase space with lambda state and work over time.
     
     Args:
         trajectories: Single State object or list of State objects with trajectory data
@@ -21,7 +21,8 @@ def plot_trajectory(trajectories: State | list[State], filename: str = "trajecto
                     t=trajectories.t[i],
                     x=trajectories.x[i],
                     v=trajectories.v[i],
-                    l=trajectories.l[i],
+                    cv=trajectories.cv[i],
+                    w=trajectories.w[i],
                     key=trajectories.key[i]
                 )
                 for i in range(B)
@@ -29,8 +30,8 @@ def plot_trajectory(trajectories: State | list[State], filename: str = "trajecto
         else:
             trajectories = [trajectories]
     
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 11), 
-                                    gridspec_kw={'height_ratios': [8, 1]})
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 13), 
+                                    gridspec_kw={'height_ratios': [8, 1, 1]})
     
     from matplotlib.collections import LineCollection
     
@@ -60,8 +61,11 @@ def plot_trajectory(trajectories: State | list[State], filename: str = "trajecto
         ax1.plot(traj.x[-1, 0], traj.x[-1, 1], 's', color=base_color, 
                 markersize=10, markeredgecolor='white', markeredgewidth=1.5, zorder=10)
         
-        # Right plot: Lambda state over time
-        ax2.plot(traj.t, traj.l.astype(float), color=base_color, linewidth=1.5, alpha=0.7)
+        # Second plot: Lambda state over time
+        ax2.plot(traj.t, traj.cv.astype(float), color=base_color, linewidth=1.5, alpha=0.7)
+        
+        # Third plot: Work over time
+        ax3.plot(traj.t, traj.w.astype(float), color=base_color, linewidth=1.5, alpha=0.7)
     
     # Configure left plot (phase space)
     ax1.set_xlim(-10, 10)
@@ -75,12 +79,18 @@ def plot_trajectory(trajectories: State | list[State], filename: str = "trajecto
     if n_traj > 1:
         ax1.legend(loc='upper right', fontsize=10)
     
-    # Configure right plot (lambda state)
+    # Configure second plot (lambda state)
     ax2.set_xlabel('Time', fontsize=12)
     ax2.set_ylabel('Lambda State', fontsize=12)
     ax2.set_title('Lambda State Over Time', fontsize=14)
     ax2.grid(alpha=0.3)
     ax2.set_ylim(-0.1, 1.1)
+    
+    # Configure third plot (work)
+    ax3.set_xlabel('Time', fontsize=12)
+    ax3.set_ylabel('Work', fontsize=12)
+    ax3.set_title('Work Over Time', fontsize=14)
+    ax3.grid(alpha=0.3)
     
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
