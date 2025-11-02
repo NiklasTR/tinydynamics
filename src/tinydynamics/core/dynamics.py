@@ -65,7 +65,7 @@ def langevin_dynamics(
         xi = jax.random.normal(subkey, shape=state.x.shape)
 
         v = state.v + dt * -grad_Ux(state.x, state.t) / mass # potential term
-        v -= gamma * state.v / mass # damping term
+        v -= dt * gamma * state.v / mass # damping term
         v += sigma * xi * jnp.sqrt(dt) # termal term
 
         x = state.x + dt * v # euler-maruyama step

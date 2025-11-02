@@ -57,11 +57,11 @@ if __name__ == "__main__":
 
     # dynamic arguments
     key = jax.random.PRNGKey(42)
-    gamma = 1.0 # as gamma increases we go from inertial to diffusive dynamics
+    gamma = 100.0 # as gamma increases we go from inertial to diffusive dynamics
     temperature = 100.0
-    kB = 100.0
+    kB = 1.0
     dt = 0.01
-    mass = 100.0
+    mass = 10.0
     a = 1.0
     b = 4.0
     c = 16.0
@@ -70,4 +70,4 @@ if __name__ == "__main__":
     records = simulate_batch(B, D, n_steps, key, dt, mass, gamma, temperature, kB, a, b, c)
 
     # plot
-    plot_trajectory(records)
+    plot_trajectory(records, plot_vacf=True)
